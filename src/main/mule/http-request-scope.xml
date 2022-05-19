@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="66ac21df-faa3-4b67-9835-560a30cb504e" doc:description="This application is sending an http request to a flow within the same application and,&#10;by same application, i mean for instance if our http request is in the meain fow, and if we want to send request to another flow under the main flow, we use the configuration of the requested flow. if our requested flow's listener is with default configuration; localhost and 8081 port we use these cridentials in the http request too." >
+		<http:listener-connection host="0.0.0.0" port="8081" readTimeout="300000"/>
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="612e37ec-de77-4fad-875d-5f38219b883d" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<flow name="request-mainflow" doc:id="999f3ba1-d1a1-471e-8ecb-562f7d4b8f6c" >
+		<http:listener doc:name="Listener of the main flow" doc:id="58d121a2-840c-4bdf-95b2-5a824efa5b3e" config-ref="HTTP_Listener_config" path="get-data-request"/>
+		<file:read doc:name="Read JSON Data" doc:id="209a368f-d359-42d1-8c62-6aa84838dd06" path="C:\Mulesoft\data\airports.json" outputMimeType="application/json"/>
+		<set-variable value="#[payload.^mediaType]" doc:name="Variable for storing the mainflow's payload MIME type" doc:id="27696a54-6502-4e80-9794-eff87aeabb01" variableName="mimeType-mainFlow"/>
+		<logger level="INFO" doc:name="Log mainflow's payload MIME type" doc:id="d659b535-682e-4ff8-8fb9-d1a44dfa5986" message="The main flow's payload MIME type is: #[payload.^mediaType]"/>
+		<http:request method="POST" doc:name="Request" doc:id="09a23b9f-9b02-416d-94a6-1c406bb56c5f" config-ref="HTTP_Request_configuration" path="/read-data" target="requested_payload"/>
+		<logger level="INFO" doc:name="Log the final payload MIME type" doc:id="219d009e-4755-4859-9f9b-37c14dd4ab07" message="The final payload's MIME type is: #[payload.^mediaType]"/>
+	</flow>
+	<flow name="requested-flow" doc:id="25a5d3a7-064d-49d0-b613-dab2c83cb13f" >
+		<http:listener doc:name="Listener of the Requested flow" doc:id="7b570475-d1bf-40ee-a32d-cd7715ce307d" config-ref="HTTP_Listener_config" path="read-data"/>
+		<file:read doc:name="Read CSV Data" doc:id="484eeabd-ea14-43e1-88de-adfb55770e1a" path="C:\Mulesoft\data\airports.csv" outputMimeType="application/csv"/>
+		<set-variable value="#[payload.^mediaType]" doc:name="Variable for storing the requestedflow's payload MIME type" doc:id="b0c91fcf-e67a-4de0-9744-ed204147a40f" variableName="mimeType-requestedFlow"/>
+		<logger level="INFO" doc:name="Log requestedflow's payload MIME type" doc:id="c49a7ab4-9fe2-4de3-9d46-77d7577552b6" message="The private flow's payload MIME type is: #[payload.^mediaType]"/>
+	</flow>
+</mule>
